@@ -26,7 +26,7 @@ def get_list(path):
                 retlist.append(file)
     return retlist
 
-def change_type(modeldropdown):
+def change_type(modeldropdown, filtertextbox):
     # Change Dropdown and Clear Area
     datalist = []
     if modeldropdown == targetlist[0]:
@@ -45,6 +45,14 @@ def change_type(modeldropdown):
         datalist = []
         return "Unknown", gr.Dropdown.update(choices=datalist, value="")
     
+    #filter
+    if not filtertextbox == "":
+        tmplist = []
+        for dt in datalist:
+            if re.search(filtertextbox.lower(), dt.lower()) is not None:
+                tmplist.append(dt)
+        datalist = tmplist
+
     return "", gr.Dropdown.update(choices=datalist, value="")
 
 
@@ -97,13 +105,15 @@ def on_ui_tabs():
             # Note Type
             modeldropdown = gr.Dropdown(label="Type", choices=targetlist, interactive=True)
             notedropdown = gr.Dropdown(label="Note", choices=[], interactive=True)
+            filtertextbox = gr.Textbox(label="Search filter", value="", interactive=True)
 
         notetextarea = gr.Textbox(label="Text", value="", interactive=True, lines=20, max_lines=200)
         savebutton =gr.Button(value="Save")        
 
-        modeldropdown.change(fn=change_type, inputs=[modeldropdown], outputs=[notetextarea, notedropdown])
+        modeldropdown.change(fn=change_type, inputs=[modeldropdown, filtertextbox], outputs=[notetextarea, notedropdown])
         notedropdown.change(fn=change_note, inputs=[modeldropdown, notedropdown], outputs=[notetextarea])
         savebutton.click(fn=save_note, inputs=[modeldropdown, notedropdown, notetextarea])
+        filtertextbox.change(fn=change_type, inputs=[modeldropdown, filtertextbox], outputs=[notetextarea, notedropdown])
 
         return [(ui_component, "Simple Note", "simple_note")]
 
